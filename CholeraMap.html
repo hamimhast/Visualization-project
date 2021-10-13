@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<title>Cholera Outbreak</title>
+		<script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+		<script type="text/javascript" src="https://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+		<style>
+    		text { 
+				font-family: Arial; 
+				font-size: 15px;
+				}
+				.axis path, 
+				.axis line {
+					fill: none;
+					stroke: black;
+					shape-rendering: crispEdges;
+					}
+				.tick text {
+					fill: black;
+					font-size: 11px;
+					}
+
+			rect {
+				stroke: white; 
+				}
+		</style>
+	</head>
+
+
+	<body>	
+		<section>
+			<center>
+			<h1 style="font-size: 40px"> Cholera Epidemic Map</h1>
+			</center>
+						<h1 style="font-size: 20px"> More information</h1>
+			<a href = https://www.youtube.com/watch?v=OXspc_cF3c0>Design Documentation</a> <br>
+			<a href = https://www.youtube.com/watch?v=OXspc_cF3c0>Video description </a>
+
+		</section>	
+
+
+		<p id = "mainp"> 
+		</p>
+		<p id = "secp"> 
+		</p>
+
+
+			
+		<script type="text/javascript">
+			var CHART_WIDTH = 600;
+	    	var CHART_HEIGHT = 450;
+
+	    	var show_age = d3.tip()
+  				.attr('class', 'd3-tip')
+	  			.offset([-10, 0])
+  				.html(function(d) {
+    				return "<strong>Age:</strong> <span style='color:red'>" + d.age_real + "</span>";
+  					})
+	    
+	    	// Here, I will be loading all the data from external files
+	    	d3.csv("data/pumps.csv", function(d){
+		    	pump_coord = d;
+		    	console.log(pump_coord);
+		    	
+				d3.csv("data/workhouse.csv", function(d){
+		    		workhouse_coord = d;
+
+					d3.csv("data/brewery.csv", function(d){
+		    			brewery_coord = d;
+
+						d3.csv("data/deaths_age_sex.csv", function(d){
+		    				deaths_coord = d;
+		    				console.log(deaths_coord);
+
+							d3.json("data/streets.json",function(d) {
+		    					street_coord=d;
+		    					console.log(street_coord);
+		    					drawMap(deaths_coord);
+	    					});
+	    				});
+	    			});			    
+	    		});
+	    	});
+
+
+	    	function drawMap(d) {					
+				var g = d3.select("#mainp")				
+			 		.append("svg")
+			  		.attr("id","mapSVG")
+			  		.attr("width", "700")
+                    .attr("height", "500")
+                    .attr("style", "border: solid 4px black;")
+     			  	.call(d3.behavior
+     			  		.zoom()
+     			  			.on("zoom", function () {
+       			    			g.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
+      			  				}))
+      			  	.append("g")
+			  		.attr("transform","translate(-113,128) ");
+
+				var xScale = d3.scale
+					.linear()
+					.domain([0,15]).range([0, CHART_WIDTH]);
+
+				var yScale = d3.scale
+					.linear()
+					.domain([15,0]).range([0,CHART_HEIGHT]);
+
+
+				var pathGenerator = d3.svg
+					.line()
+					.x(function(d) { return xScale(d.x); })
+					.y(function(d) { return yScale(d.y); });
+
+
+				g.selectAll(".line")
+   	 				.data(street_coord)
+    				.enter().append("path")
+    				.style('fill', 'none')
+    				.style('stroke', 'black')
+    				.style('stroke-width', '2px')
+    				.attr("class", "map")
+    				.attr("d", pathGenerator)
+			
+				g.append("text")
+  					.style("fill", "black")
+  					.style("font-size", "20px")
+  					.attr("dy", ".35em")
+ 		 			.attr("text-anchor", "middle")
+  					.attr("transform", "translate(500,115) rotate(-28)")
+  					.text("Broad Street");
+
+				g.append("text")
+  					.style("fill", "black")
+  					.style("font-size", "20px")
+  					.attr("dy", ".35em")
+ 		 			.attr("text-anchor", "middle")
+  					.attr("transform", "translate(292,120) rotate(60)")
+  					.text("Regent Street");
+
+				g.append("text")
+  					.style("fill", "black")
+  					.style("font-size", "20px")
+  					.attr("dy", ".35em")
+ 		 			.attr("text-anchor", "middle")
+  					.attr("transform", "translate(350,-40) rotate(-10)")
+  					.text("Oxford Street");
+
+  				g.append("text")
+  					.style("fill", "black")
+  					.style("font-size", "20px")
+  					.attr("dy", ".35em")
+ 		 			.attr("text-anchor", "middle")
+  					.attr("transform", "translate(545,270) rotate(-41)")
+  					.text("Brewer Street");
+
+				g.append("text")
+  					.style("fill", "black")
+  					.style("font-size", "20px")
+  					.attr("dy", ".35em")
+ 		 			.attr("text-anchor", "middle")
+  					.attr("transform", "translate(679,-1) rotate(67)")
+  					.text("Dean Street")
+
+  				g.append("text")
+  					.style("fill", "black")
+  					.style("font-size", "20px")
+  					.attr("dy", ".35em")
+ 		 			.attr("text-anchor", "middle")
+  					.attr("transform", "translate(180,176) rotate(71)")
+  					.text("Coerce Street");
+
+				mapPumps(pump_coord);
+				mapDeaths(deaths_coord);
+		   	 	mapWorkhouse(workhouse_coord);
+				//mapBrewery(brewery_coord)	    
+				}
+
+
+
+
+			function mapDeaths(d) {
+				var xScale = d3.scale
+					.linear()
+					.domain([0,15]).range([0, CHART_WIDTH]);
+
+				var yScale = d3.scale
+					.linear()
+					.domain([15,0]).range([0,CHART_HEIGHT]);
+
+				var circles = d3.select('#mapSVG')
+					.select('g')
+					.selectAll(".circle_d")
+					.data(d);
+			
+				circles.enter()
+					.append("circle")
+			  		.attr("r", 3)
+			  		.style("fill", function (d){
+			  				if(d.gender==0) 
+			  					return "orange";
+			  				else 
+			  					return "blue"})
+			  		.attr("class","circle_d");
+
+				circles
+			  		.attr("cx", function (d){ return xScale(d.x); })
+			  		.attr("cy", function (d){ return yScale(d.y); })
+			
+			  		//.call(show_age)
+			  		//.on('mouseover', show_age.show)
+			  		//.on('mouseout', show_age.hide);
+
+				//circles.exit()
+					//.remove();
+				}
+
+
+
+			function mapPumps(d){
+				var xScale = d3.scale
+					.linear()
+					.domain([0,15]).range([0, CHART_WIDTH]);
+
+				var yScale = d3.scale
+					.linear()
+					.domain([15,0]).range([0,CHART_HEIGHT]);
+			
+
+				var pumps = d3.select('#mapSVG')
+					.select('g')
+					.selectAll(".circle_p")
+					.data(d);
+			
+					pumps.enter()
+						.append("circle")
+			  			.attr("r", 6)
+			  			.style("fill", "red")
+			  			.attr("class","circle_p");
+
+					pumps
+			  			.attr("cx", function (d){ return xScale(d.x); })
+			  			.attr("cy", function (d){ return yScale(d.y); });
+				}
+
+			function mapWorkhouse(data){
+			
+				var xScale = d3.scale.linear();
+				var yScale = d3.scale.linear();
+					xScale.domain([0,15]).range([0, CHART_WIDTH]);
+					yScale.domain([15,0]).range( [0,CHART_HEIGHT]);	
+
+				var circles = d3.select('#mapSVG')
+					.select('g')
+					.selectAll(".circle_w")
+					.data(data);
+			
+				circles.enter()
+					.append("circle")
+			  		.attr("r", 13)
+			  		.style("fill", "brown")
+			  		.attr("class","circle_w");
+
+				circles
+			  		.attr("cx", function (d){ return xScale(d.x); })
+			  		.attr("cy", function (d){ return yScale(d.y); });
+
+				circles.exit().remove();
+				}
+
+
+			d3.csv("data/deathdays.csv", function(d){
+		    	days_of_death = d
+		    	console.log(days_of_death);
+		    	Graph_Time(d);
+	   		});
+
+			function updateData(day1,day2){
+			  	mapDeaths(deaths.slice(days_of_death[day1-1]['total']-1,days_of_death[day2-1]['total']-1));
+			  	}
+
+
+			function draw_cumulative(data){
+				tip.show(data);
+				mapPumps(pump_coord);
+				mapDeaths(deaths_coord.slice(0,data.total));
+				}
+
+		
+		 	var tip = d3.tip()
+  				.attr('class', 'd3-tip')
+	  			.offset([-10, 0])
+  				.html(function(d) {
+    				return "<br><strong> Day:</strong> <span style='color:red'>" + d.day + "</span></br>"+"<strong>Deaths:</strong> <span style='color:red'>" + d.deaths + "</span>"+"<br><strong>Cumulative Deaths:</strong> <span style='color:red'>" + d.total + "</span></br>";
+  				})
+
+
+  			var tip_deaths = d3.tip()
+  				.attr('class', 'd3-tip')
+	  			.offset([-10, 0])
+  				.html(function(d) {
+    				return "<strong>Deaths:</strong> <span style='color:red'>" + d.deaths + "</span>";
+    			});
+
+
+
+
+
+			function Graph_Time(data){
+			
+				var g = d3.select("#secp")				
+					.append("svg")
+			  		.attr("id","timeline")
+      				.attr("width", "600")
+               		.attr("height", "400")
+               		.attr("style", "border: solid 4px red;")
+     				.append("g")
+			  		.attr("transform","translate(-113,128)");
+
+				var xScale = d3.scale.ordinal()
+					.domain(data.map(function(d) { return d.date; }))
+					.rangeRoundBands([120, 680], 0.1);
+
+				var yScale = d3.scale.linear()
+					.domain([0,38])
+					.range( [0,50]);
+		
+
+				var rect = d3.select('#timeline')
+					.select('g')
+					.selectAll(".bar1")
+					.data(data);
+
+				var xAxis = d3.svg
+					.axis()
+    			 	.scale(xScale)
+    		 	 	.orient("bottom");			
+			
+  				d3.select('#timeline')
+  					.select('g')
+  					.append('g')
+      				.attr("class", "axis")
+      				.attr("transform","translate(0," +130 + ")")
+            		.call(xAxis)
+					.selectAll("text")
+   					.attr("y", 0)
+    				.attr("x", 9)
+   					.attr("dy", ".35em")
+    				.attr("transform", "rotate(50)")
+   			  		.style("text-anchor", "start");
+		
+
+				rect.enter()
+					.append("rect")
+			  		.attr("width", 10)
+			 		.attr("height", function (d){return yScale(d.deaths); }) 
+			  
+
+				rect
+			  		.attr("class", "bar1")
+			  		.attr("x", function (d){ return xScale(d.date); })
+			 		.attr("y", function (d){ return 130- yScale(d.deaths); })
+			  
+			  	.call(tip)
+			  
+			  	.on('mouseover', draw_cumulative)
+			  	.on('mouseout', tip.hide);
+			  
+			 	//read a change in the input
+			 	d3.select("#Day1").on("input", function() {
+  			    	day1=this.value
+			    	updateDay1(+this.value);
+			 		});
+
+			 	d3.select("#Day2").on("input", function() {
+  			    	day2=this.value
+			    	updateDay2(+this.value);
+			 		});
+				
+				//updateDay1(0);
+				//updateDay2(0);
+
+			 	// Update the Day1 attributes
+				function updateDay1(Day1) {
+  			  		// adjust the text on the range slider
+  			 		d3.select("#Day1-value").text(Day1);
+  					d3.select("#Day1").property("value", Day1);
+					}
+
+				
+				// Update the Day2 attributes
+				function updateDay2(Day2) {
+			  		// adjust the text on the range slider
+  			  		d3.select("#Day2-value").text(Day2);
+  			  		d3.select("#Day2").property("value", Day2);
+  			  		}
+
+				g.append("text")
+  					.style("fill", "black")
+  					.style("font-size", "16px")
+  					.attr("dy", ".35em")
+ 		 			.attr("text-anchor", "middle")
+  					.attr("transform", "translate(250,230) rotate(0)")
+  					.text("Timeline Graph")
+			
+				g.append("circle")
+			  		.attr("r", 13)
+			  		.style("fill", "brown")			
+			  		.attr("transform", "translate(545,-230) rotate(0)")
+
+				g.append("text")
+  			  		.style("fill", "black")
+  			  		.style("font-size", "16px")
+  			  		.attr("dy", ".35em")
+ 		 	  		.attr("text-anchor", "middle")
+  			  		.attr("transform", "translate(607,-230) rotate(0)")
+  			  		.text("Work House")
+
+				g.append("circle")
+			  		.attr("r", 10)
+			  		.style("fill", "grey")
+			  		.attr("transform", "translate(544,-190) rotate(0)")
+
+				g.append("text")
+  			  		.style("fill", "black")
+  			  		.style("font-size", "16px")
+  			  		.attr("dy", ".35em")
+ 		 	  		.attr("text-anchor", "middle")
+  			  		.attr("transform", "translate(595,-190) rotate(0)")
+  			  		.text("Brewery")
+
+				g.append("circle")
+			  		.attr("r", 6)
+			  		.style("fill", "black")
+			  		.attr("transform", "translate(544,-150) rotate(0)")
+
+				g.append("text")
+  			  		.style("fill", "black")
+  			  		.style("font-size", "16px")
+  			  		.attr("dy", ".35em")
+ 		 	  		.attr("text-anchor", "middle")
+  			  		.attr("transform", "translate(586,-150) rotate(0)")
+  			  		.text("Pump")
+			}
+
+
+
+	
+		</script>
+
+	</body>
+</html>
