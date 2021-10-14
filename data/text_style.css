@@ -1,0 +1,234 @@
+* {
+    margin: 0;
+}
+
+body {
+    font-family: Helvetica, sans-serif;
+}
+
+a {
+    text-decoration: none;
+    color: #414141;
+}
+h2 {
+    color: #414141;
+}
+
+/************GRID LAYOUT*************/
+.grid-container {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    grid-template-rows: 50px 1fr 50px;
+    grid-template-areas:
+            "sidenav header"
+            "sidenav main"
+            "sidenav footer";
+    height: 120vh;
+}
+
+.header {
+    grid-area: header;
+    background-color: #D8DCE1;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+
+}
+.header h3 {
+    color: #000000;
+}
+
+.side-nav {
+    grid-area: sidenav;
+    background-color: #93f593;
+    padding: 100px 10px;
+    color: #FCFBF8;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+
+}
+.side-nav ul {
+    list-style: none;
+    padding: 10px;
+}
+.side-nav ul li {
+    line-height: 2;
+    font-size: 18px;
+}
+.side-nav a:hover {
+    color: #63ACBE;
+}
+
+.main {
+    grid-area: main;
+    background-color: #FAFAFB;
+}
+.main h3 {
+    padding-bottom: 16px;
+    padding-top: 10px;
+    color: #000000;
+}
+
+.footer {
+    grid-area: footer;
+    /*background-color: deeppink;*/
+}
+
+.header, .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    /*background-color: #f3f2ef;*/
+}
+
+.main-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Where the magic happens */
+    grid-auto-rows: 160px;
+    grid-gap: 20px;
+    margin: 20px;
+    background-color: #bede9e;
+}
+
+.overviewcard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    background-color: #bede9e;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+.overviewcard_info #xHsG{
+    align-items: baseline;
+}
+.overviewcard #totalNum {
+    width: 20%;
+}
+#ageGender {
+    grid-column: 2 / span 5;
+}
+#totalD {
+    font-size: 4em;
+    color: #09ede6;
+}
+
+.main-cards {
+    column-count: 2;
+    overflow: hidden;
+    column-gap: 20px;
+    margin: 20px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    /*background-color: #82bef6;*/
+    margin-bottom: 20px;
+    -webkit-column-break-inside: avoid;
+    /*padding: 24px;*/
+    box-sizing: border-box;
+    margin-right: 20px;
+}
+/* Force varying heights to simulate dynamic content */
+.card:first-child {
+    height: 580px;
+}
+.card:nth-child(2) {
+    min-height: 200px;
+}
+.card:nth-child(3) {
+    height: 265px;
+}
+
+
+
+/************BARCHART ATTRIBUTES*************/
+#bar-chart
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #414141;
+    shape-rendering: crispEdges;
+}
+
+.bar1 {
+    /*fill: orange;*/
+    fill: #414141;
+}
+
+.bar1:hover {
+    /*fill: orangered ;*/
+    fill: #09ede6 ;
+}
+.bar:hover {
+    color: #AAAAAA;
+}
+
+.x.axis path {
+    display: none;
+}
+
+.d3-tip {
+    line-height: 1;
+    font-weight: bold;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.8);
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+}
+
+
+/*axis*/
+.axis path, .axis line {
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+.tick text {
+    fill: black;
+    font-size: 13px;
+}
+
+/*documentation page*/
+.documenation p {
+    padding: 10px;
+}
+.documenation img {
+    padding: 30px 0 10px 10px;
+
+}
+.documenation h1 {
+    padding: 50px 0 25px 50px;
+}
+.documenation h2 {
+    padding: 25px 0 10px 50px;
+}
+
+/*video page*/
+.video {
+    margin: 150px;
+}
+

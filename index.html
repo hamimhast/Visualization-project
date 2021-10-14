@@ -1,453 +1,548 @@
 <!DOCTYPE html>
-<html>
-
-	<head>
-		<title>Cholera Outbreak</title>
-		<script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
-		<script type="text/javascript" src="https://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
-		<style>
-    		text { 
-				font-family: Arial; 
-				font-size: 15px;
-				}
-				.axis path, 
-				.axis line {
-					fill: none;
-					stroke: black;
-					shape-rendering: crispEdges;
-					}
-				.tick text {
-					fill: black;
-					font-size: 11px;
-					}
-
-			rect {
-				stroke: white; 
-				}
-		</style>
-	</head>
-
-
-	<body>	
-		<section>
-			<center>
-			<h1 style="font-size: 40px"> Cholera Epidemic Map</h1>
-			</center>
-						<h1 style="font-size: 20px"> More information</h1>
-			<a href = https://www.youtube.com/watch?v=OXspc_cF3c0>Design Documentation</a> <br>
-			<a href = https://www.youtube.com/watch?v=OXspc_cF3c0>Video description </a>
-
-		</section>	
-
-
-		<p id = "mainp"> 
-		</p>
-		<p id = "secp"> 
-		</p>
-
-
-			
-		<script type="text/javascript">
-			var CHART_WIDTH = 600;
-	    	var CHART_HEIGHT = 450;
-
-	    	var show_age = d3.tip()
-  				.attr('class', 'd3-tip')
-	  			.offset([-10, 0])
-  				.html(function(d) {
-    				return "<strong>Age:</strong> <span style='color:red'>" + d.age_real + "</span>";
-  					})
-	    
-	    	// Here, I will be loading all the data from external files
-	    	d3.csv("data/pumps.csv", function(d){
-		    	pump_coord = d;
-		    	console.log(pump_coord);
-		    	
-				d3.csv("data/workhouse.csv", function(d){
-		    		workhouse_coord = d;
-
-					d3.csv("data/brewery.csv", function(d){
-		    			brewery_coord = d;
-
-						d3.csv("data/deaths_age_sex.csv", function(d){
-		    				deaths_coord = d;
-		    				console.log(deaths_coord);
-
-							d3.json("data/streets.json",function(d) {
-		    					street_coord=d;
-		    					console.log(street_coord);
-		    					drawMap(deaths_coord);
-	    					});
-	    				});
-	    			});			    
-	    		});
-	    	});
-
-
-	    	function drawMap(d) {					
-				var g = d3.select("#mainp")				
-			 		.append("svg")
-			  		.attr("id","mapSVG")
-			  		.attr("width", "700")
-                    .attr("height", "500")
-                    .attr("style", "border: solid 4px black;")
-     			  	.call(d3.behavior
-     			  		.zoom()
-     			  			.on("zoom", function () {
-       			    			g.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
-      			  				}))
-      			  	.append("g")
-			  		.attr("transform","translate(-113,128) ");
-
-				var xScale = d3.scale
-					.linear()
-					.domain([0,15]).range([0, CHART_WIDTH]);
-
-				var yScale = d3.scale
-					.linear()
-					.domain([15,0]).range([0,CHART_HEIGHT]);
-
-
-				var pathGenerator = d3.svg
-					.line()
-					.x(function(d) { return xScale(d.x); })
-					.y(function(d) { return yScale(d.y); });
-
-
-				g.selectAll(".line")
-   	 				.data(street_coord)
-    				.enter().append("path")
-    				.style('fill', 'none')
-    				.style('stroke', 'black')
-    				.style('stroke-width', '2px')
-    				.attr("class", "map")
-    				.attr("d", pathGenerator)
-			
-				g.append("text")
-  					.style("fill", "black")
-  					.style("font-size", "20px")
-  					.attr("dy", ".35em")
- 		 			.attr("text-anchor", "middle")
-  					.attr("transform", "translate(500,115) rotate(-28)")
-  					.text("Broad Street");
-
-				g.append("text")
-  					.style("fill", "black")
-  					.style("font-size", "20px")
-  					.attr("dy", ".35em")
- 		 			.attr("text-anchor", "middle")
-  					.attr("transform", "translate(292,120) rotate(60)")
-  					.text("Regent Street");
-
-				g.append("text")
-  					.style("fill", "black")
-  					.style("font-size", "20px")
-  					.attr("dy", ".35em")
- 		 			.attr("text-anchor", "middle")
-  					.attr("transform", "translate(350,-40) rotate(-10)")
-  					.text("Oxford Street");
-
-  				g.append("text")
-  					.style("fill", "black")
-  					.style("font-size", "20px")
-  					.attr("dy", ".35em")
- 		 			.attr("text-anchor", "middle")
-  					.attr("transform", "translate(545,270) rotate(-41)")
-  					.text("Brewer Street");
-
-				g.append("text")
-  					.style("fill", "black")
-  					.style("font-size", "20px")
-  					.attr("dy", ".35em")
- 		 			.attr("text-anchor", "middle")
-  					.attr("transform", "translate(679,-1) rotate(67)")
-  					.text("Dean Street")
-
-  				g.append("text")
-  					.style("fill", "black")
-  					.style("font-size", "20px")
-  					.attr("dy", ".35em")
- 		 			.attr("text-anchor", "middle")
-  					.attr("transform", "translate(180,176) rotate(71)")
-  					.text("Coerce Street");
-
-				mapPumps(pump_coord);
-				mapDeaths(deaths_coord);
-		   	 	mapWorkhouse(workhouse_coord);
-				//mapBrewery(brewery_coord)	    
-				}
-
-
-
-
-			function mapDeaths(d) {
-				var xScale = d3.scale
-					.linear()
-					.domain([0,15]).range([0, CHART_WIDTH]);
-
-				var yScale = d3.scale
-					.linear()
-					.domain([15,0]).range([0,CHART_HEIGHT]);
-
-				var circles = d3.select('#mapSVG')
-					.select('g')
-					.selectAll(".circle_d")
-					.data(d);
-			
-				circles.enter()
-					.append("circle")
-			  		.attr("r", 3)
-			  		.style("fill", function (d){
-			  				if(d.gender==0) 
-			  					return "orange";
-			  				else 
-			  					return "blue"})
-			  		.attr("class","circle_d");
-
-				circles
-			  		.attr("cx", function (d){ return xScale(d.x); })
-			  		.attr("cy", function (d){ return yScale(d.y); })
-			
-			  		//.call(show_age)
-			  		//.on('mouseover', show_age.show)
-			  		//.on('mouseout', show_age.hide);
-
-				//circles.exit()
-					//.remove();
-				}
-
-
-
-			function mapPumps(d){
-				var xScale = d3.scale
-					.linear()
-					.domain([0,15]).range([0, CHART_WIDTH]);
-
-				var yScale = d3.scale
-					.linear()
-					.domain([15,0]).range([0,CHART_HEIGHT]);
-			
-
-				var pumps = d3.select('#mapSVG')
-					.select('g')
-					.selectAll(".circle_p")
-					.data(d);
-			
-					pumps.enter()
-						.append("circle")
-			  			.attr("r", 6)
-			  			.style("fill", "red")
-			  			.attr("class","circle_p");
-
-					pumps
-			  			.attr("cx", function (d){ return xScale(d.x); })
-			  			.attr("cy", function (d){ return yScale(d.y); });
-				}
-
-			function mapWorkhouse(data){
-			
-				var xScale = d3.scale.linear();
-				var yScale = d3.scale.linear();
-					xScale.domain([0,15]).range([0, CHART_WIDTH]);
-					yScale.domain([15,0]).range( [0,CHART_HEIGHT]);	
-
-				var circles = d3.select('#mapSVG')
-					.select('g')
-					.selectAll(".circle_w")
-					.data(data);
-			
-				circles.enter()
-					.append("circle")
-			  		.attr("r", 13)
-			  		.style("fill", "brown")
-			  		.attr("class","circle_w");
-
-				circles
-			  		.attr("cx", function (d){ return xScale(d.x); })
-			  		.attr("cy", function (d){ return yScale(d.y); });
-
-				circles.exit().remove();
-				}
-
-
-			d3.csv("data/deathdays.csv", function(d){
-		    	days_of_death = d
-		    	console.log(days_of_death);
-		    	Graph_Time(d);
-	   		});
-
-			function updateData(day1,day2){
-			  	mapDeaths(deaths.slice(days_of_death[day1-1]['total']-1,days_of_death[day2-1]['total']-1));
-			  	}
-
-
-			function draw_cumulative(data){
-				tip.show(data);
-				mapPumps(pump_coord);
-				mapDeaths(deaths_coord.slice(0,data.total));
-				}
-
-		
-		 	var tip = d3.tip()
-  				.attr('class', 'd3-tip')
-	  			.offset([-10, 0])
-  				.html(function(d) {
-    				return "<br><strong> Day:</strong> <span style='color:red'>" + d.day + "</span></br>"+"<strong>Deaths:</strong> <span style='color:red'>" + d.deaths + "</span>"+"<br><strong>Cumulative Deaths:</strong> <span style='color:red'>" + d.total + "</span></br>";
-  				})
-
-
-  			var tip_deaths = d3.tip()
-  				.attr('class', 'd3-tip')
-	  			.offset([-10, 0])
-  				.html(function(d) {
-    				return "<strong>Deaths:</strong> <span style='color:red'>" + d.deaths + "</span>";
-    			});
-
-
-
-
-
-			function Graph_Time(data){
-			
-				var g = d3.select("#secp")				
-					.append("svg")
-			  		.attr("id","timeline")
-      				.attr("width", "600")
-               		.attr("height", "400")
-               		.attr("style", "border: solid 4px red;")
-     				.append("g")
-			  		.attr("transform","translate(-113,128)");
-
-				var xScale = d3.scale.ordinal()
-					.domain(data.map(function(d) { return d.date; }))
-					.rangeRoundBands([120, 680], 0.1);
-
-				var yScale = d3.scale.linear()
-					.domain([0,38])
-					.range( [0,50]);
-		
-
-				var rect = d3.select('#timeline')
-					.select('g')
-					.selectAll(".bar1")
-					.data(data);
-
-				var xAxis = d3.svg
-					.axis()
-    			 	.scale(xScale)
-    		 	 	.orient("bottom");			
-			
-  				d3.select('#timeline')
-  					.select('g')
-  					.append('g')
-      				.attr("class", "axis")
-      				.attr("transform","translate(0," +130 + ")")
-            		.call(xAxis)
-					.selectAll("text")
-   					.attr("y", 0)
-    				.attr("x", 9)
-   					.attr("dy", ".35em")
-    				.attr("transform", "rotate(50)")
-   			  		.style("text-anchor", "start");
-		
-
-				rect.enter()
-					.append("rect")
-			  		.attr("width", 10)
-			 		.attr("height", function (d){return yScale(d.deaths); }) 
-			  
-
-				rect
-			  		.attr("class", "bar1")
-			  		.attr("x", function (d){ return xScale(d.date); })
-			 		.attr("y", function (d){ return 130- yScale(d.deaths); })
-			  
-			  	.call(tip)
-			  
-			  	.on('mouseover', draw_cumulative)
-			  	.on('mouseout', tip.hide);
-			  
-			 	//read a change in the input
-			 	d3.select("#Day1").on("input", function() {
-  			    	day1=this.value
-			    	updateDay1(+this.value);
-			 		});
-
-			 	d3.select("#Day2").on("input", function() {
-  			    	day2=this.value
-			    	updateDay2(+this.value);
-			 		});
-				
-				//updateDay1(0);
-				//updateDay2(0);
-
-			 	// Update the Day1 attributes
-				function updateDay1(Day1) {
-  			  		// adjust the text on the range slider
-  			 		d3.select("#Day1-value").text(Day1);
-  					d3.select("#Day1").property("value", Day1);
-					}
-
-				
-				// Update the Day2 attributes
-				function updateDay2(Day2) {
-			  		// adjust the text on the range slider
-  			  		d3.select("#Day2-value").text(Day2);
-  			  		d3.select("#Day2").property("value", Day2);
-  			  		}
-
-				g.append("text")
-  					.style("fill", "black")
-  					.style("font-size", "16px")
-  					.attr("dy", ".35em")
- 		 			.attr("text-anchor", "middle")
-  					.attr("transform", "translate(250,230) rotate(0)")
-  					.text("Timeline Graph")
-			
-				g.append("circle")
-			  		.attr("r", 13)
-			  		.style("fill", "brown")			
-			  		.attr("transform", "translate(545,-230) rotate(0)")
-
-				g.append("text")
-  			  		.style("fill", "black")
-  			  		.style("font-size", "16px")
-  			  		.attr("dy", ".35em")
- 		 	  		.attr("text-anchor", "middle")
-  			  		.attr("transform", "translate(607,-230) rotate(0)")
-  			  		.text("Work House")
-
-				g.append("circle")
-			  		.attr("r", 10)
-			  		.style("fill", "grey")
-			  		.attr("transform", "translate(544,-190) rotate(0)")
-
-				g.append("text")
-  			  		.style("fill", "black")
-  			  		.style("font-size", "16px")
-  			  		.attr("dy", ".35em")
- 		 	  		.attr("text-anchor", "middle")
-  			  		.attr("transform", "translate(595,-190) rotate(0)")
-  			  		.text("Brewery")
-
-				g.append("circle")
-			  		.attr("r", 6)
-			  		.style("fill", "black")
-			  		.attr("transform", "translate(544,-150) rotate(0)")
-
-				g.append("text")
-  			  		.style("fill", "black")
-  			  		.style("font-size", "16px")
-  			  		.attr("dy", ".35em")
- 		 	  		.attr("text-anchor", "middle")
-  			  		.attr("transform", "translate(586,-150) rotate(0)")
-  			  		.text("Pump")
-			}
-
-
-
-	
-		</script>
-
-	</body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>London Cholera Outbreak</title>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <!--<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>-->
+    <script src="https://d3js.org/d3-color.v1.min.js"></script>
+    <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    <script src="https://cdnjs.com/libraries/d3-legend"></script>
+    <link rel="stylesheet" href="data/text_style.css">
+    <link rel="stylesheet" href="data/GraphStyle.css">
+
+</head>
+<body>
+
+<div class="grid-container">
+    <div class="side-nav">
+        <ul>
+            <li><p><a href="final_documentation.html">Documentation</a> </p></li>
+            <li><p><a href = https://www.youtube.com/watch?v=OXspc_cF3c0>Video</a> </p></li>
+        </ul>
+    </div>
+    <div>
+        <br>
+        <center> <h2> London Cholera Outbreak</h2> </center>
+        
+    </div>
+    <div class="main">
+        <div class="main-overview">
+
+            <div id="ageGender" class="overviewcard">
+                <div class="overviewcard__icon">Detailed Plots:<br>1. By Age Group<br>2. By Gender</div>
+            </div>
+        </div>
+        <div class="main-cards">
+            <div id="map" class="card">
+                <h3>Interactive Map </h3>
+                <svg id="map-area" width="700" height="600" style = "border: solid 4px black;"></svg>
+            </div>
+            <div id="time-slider" class="card">
+                <h3>Timeline of Deaths per Day</h3>
+                <svg id="bar-chart" width="500" height="500" font-size="10px"></svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var yScale = d3.scale
+                    .linear()
+                    .domain([0,20]).range([0, 600]);
+
+    var xScale = d3.scale
+                    .linear()
+                    .domain([20,0]).range([0,800]);
+
+    //draw map--------------------------------------------------------
+    d3.json("data/streets.json", function (data) {
+        // console.log(data);
+
+        //Define the lines
+        var pathGen = d3.svg.line()
+            .x(function (d) { return 690 - xScale(d.x); })
+            .y(function (d) { return 585 - yScale(d.y); });
+
+        var g = d3.select('#map-area').append('g')
+
+
+        //Loop through all the data
+        for (var i = 0; i < data.length; i++){
+            var line = data[i];
+
+            // console.log(line);
+            g.append('path')
+                .style('fill', 'none')
+                .style('stroke', '#414141')
+                .style('stroke-width', '2px')
+                .attr('d', pathGen(line))
+
+        }
+
+        g.append("text")
+                    .style("fill", "black")
+                    .style("font-size", "17px")
+                    .attr("dy", ".35em")
+                    .attr("text-anchor", "middle")
+                    .attr("transform", "translate(380,221) rotate(-23)")
+                    .text("Broad Street");
+
+        g.append("text")
+                    .style("fill", "black")
+                    .style("font-size", "17px")
+                    .attr("dy", ".35em")
+                    .attr("text-anchor", "middle")
+                    .attr("transform", "translate(175,246) rotate(55)")
+                    .text("Regent Street");
+
+        g.append("text")
+                    .style("fill", "black")
+                    .style("font-size", "17px")
+                    .attr("dy", ".35em")
+                    .attr("text-anchor", "middle")
+                    .attr("transform", "translate(73,271) rotate(67)")
+                    .text("Coerce Street");
+
+        g.append("text")
+                    .style("fill", "black")
+                    .style("font-size", "17px")
+                    .attr("dy", ".35em")
+                    .attr("text-anchor", "middle")
+                    .attr("transform", "translate(350,68) rotate(-10)")
+                    .text("Oxford Street");
+
+        g.append("text")
+                    .style("fill", "black")
+                    .style("font-size", "17px")
+                    .attr("dy", ".35em")
+                    .attr("text-anchor", "middle")
+                    .attr("transform", "translate(450,351) rotate(-38)")
+                    .text("Brewer Street");
+
+
+        g.append("text")
+                    .style("fill", "black")
+                    .style("font-size", "17px")
+                    .attr("dy", ".35em")
+                    .attr("text-anchor", "middle")
+                    .attr("transform", "translate(564,120) rotate(61)")
+                    .text("Dean Street")
+
+
+
+
+    });
+
+    //add pumps
+    d3.csv("data/pumps.csv", function (data) {
+        console.log(data)
+        var dots = d3.select('#map-area').append('g');
+
+        dots.selectAll('circle')
+            .data(data)
+            .enter().append('circle')
+            .style('fill', 'black')
+            .attr('r', '5px')
+            .attr('cx', function(d) { return 690 - xScale(d.x);})
+            .attr('cy', function(d) { return 585 - yScale(d.y); })
+            .attr('id', function(d) { return 'dots' + d.id; } );
+
+    });
+
+
+
+
+
+    d3.csv("data/deathdays.csv", function (days) {
+
+        d3.csv("data/deaths_age_sex.csv", function (deaths) {
+
+
+            var j=0;
+            for(i = 0; i < days.length; i++){
+
+                var theDay = days[i].date;
+                var howManyDied = days[i].deaths;
+
+                for(k = 0; k < howManyDied; k++){
+                    deaths[j].date = theDay;
+                    j++;
+                    console.log(theDay);
+
+
+
+                }
+
+            }
+
+            //create circles------------------------------------------------------------------
+            var dots = d3.select('#map-area')
+                        .append('g');
+
+            var cValue = function(d) { return d["gender"];},
+                color = d3.scale.linear().domain([1,length])
+                .interpolate(d3.interpolateHcl)
+                .range([d3.rgb("#FF1493"), d3.rgb('#63ACBE')]);
+
+    var yScale = d3.scale
+                    .linear()
+                    .domain([0,20]).range([0, 600]);
+
+    var xScale = d3.scale
+                    .linear()
+                    .domain([20,0]).range([0,800]);
+
+            dots.selectAll('circle')
+                .data(deaths)
+                .enter().append('circle')
+                .style('fill', 'red')
+                .attr('r', '3px')
+                .attr('cx', function(d) {return 690 - xScale(d.x);})
+                .attr('cy', function(d) { return 585 - yScale(d.y); })
+                .attr('id', function(d) { return 'dots' + d.id; })
+                .attr('class', function (d) {return 'dot' + d.date;})
+                .style("fill", function(d) { return color(cValue(d));})
+
+
+            //create barchart--------------------------------------------------------------
+            var margin = {top: 0, right: 20, bottom: 30, left: 40},
+                width = 500 - margin.left - margin.right,
+                height = 500 - margin.top - margin.bottom;
+
+            var deathNumbers = d3.format("");
+
+            // define the x scale (horizontal)
+            var mindate = new Date(1854,8,19),
+                maxdate = new Date(1854,9,29);
+
+            var padding = 100;
+
+            var xScale = d3.time.scale()
+                .domain([mindate, maxdate])   
+                .range([0, width]);   
+
+            var x = d3.scale.ordinal()
+                .rangeRoundBands([0, width], .1);
+
+            var y = d3.scale.linear()
+                .range([height, 0])
+                .domain([0,150])
+
+            // define the y axis
+            var xAxis = d3.svg.axis()
+                .orient("bottom")
+                .scale(xScale)
+ 
+
+            var yAxis = d3.svg.axis()
+                .scale(y)
+                .orient("left")
+                .tickFormat(deathNumbers);
+
+
+
+            var svg = d3.select("#bar-chart").append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+                x.domain(days.map(function(d) { return d.date; }));
+
+                svg.append("g")
+                    .attr("class", "axis xaxis")   // give it a class so it can be used to select only xaxis labels  below
+                    .attr("transform", "translate(0," + height + ")")
+                    .call(xAxis)
+
+                  
+
+                svg.selectAll(".xaxis text")  // select all the text elements for the xaxis
+                .attr("transform", function(d) {
+                    return "translate(" + this.getBBox().height*-2 + "," + this.getBBox().height + ")rotate(-45)";
+                });
+
+                svg.append("g")
+                    .attr("class", "y axis")
+                    .call(yAxis)
+                    .append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", 6)
+                    .attr("dy", ".71em")
+                    .style("text-anchor", "end")
+                    .text("Number of Deaths");
+
+                svg.selectAll(".bar1")
+                    .data(days)
+                    .enter().append("rect")
+                    .attr("class", "bar1")
+                    .attr("x", function(d) { return x(d.date); })
+                    .attr("width", x.rangeBand())
+                    .attr("y", function(d) { return y(d.deaths); })
+                    .attr("height", function(d) { return height - y(d.deaths); })
+                    .attr('id', function(d) { return 'bar1' + d.date; })
+                    // .on('mouseover', tip.show)
+                    // .on('mouseout', tip.hide)
+                    .on('mouseover', function (d) {
+                        // tip.show
+                            d3.selectAll('.' + 'dot' + d.date)
+                                .style("fill", function(d) { return color(cValue(d));})
+                                .attr('r', '8px')
+
+                        // this.parentNode.appendChild(this);
+
+                    })
+                    .on('mouseout', function (d) {
+                        d3.selectAll('.' + 'dot' + d.date)
+                            .style("fill", function(d) { return color(cValue(d));})
+                            .attr('r', '3px')
+
+
+                    })
+
+            });
+        function type(d) {
+            d.deaths = +d.deaths;
+            return d;
+        }
+
+
+    });
+
+
+</script>
+
+<script>
+
+
+    function ageGender(id, fData){
+        var barColor = '#414141';
+        function segColor(c){ return {Male:"#63ACBE", Female:"#FF1493"}[c]; }
+
+        // compute total for each AgeRange.
+        fData.forEach(function(d){d.total=d.Sex.Male+d.Sex.Female;});
+
+        // function to handle histogram.
+        function histoGram(fD){
+            var hG={},    hGDim = {t: 60, r: 0, b: 30, l: 0};
+            hGDim.w = 300 - hGDim.l - hGDim.r,
+                hGDim.h = 150 - hGDim.t - hGDim.b;
+
+            //create svg for histogram.
+            var hGsvg = d3.select(id).append("svg")
+                .attr("width", hGDim.w + hGDim.l + hGDim.r)
+                .attr("height", hGDim.h + hGDim.t + hGDim.b).append("g")
+                .attr("transform", "translate(" + hGDim.l + "," + hGDim.t + ")");
+
+            // create function for x-axis mapping.
+            var x = d3.scale.ordinal().rangeRoundBands([0, hGDim.w], 0.1)
+                .domain(fD.map(function(d) { return d[0]; }));
+
+            // Add x-axis to the histogram svg.
+            hGsvg.append("g").attr("class", "x axis")
+                .attr("transform", "translate(0," + hGDim.h + ")")
+                .call(d3.svg.axis().scale(x).orient("bottom"));
+
+            // Create function for y-axis map.
+            var y = d3.scale.linear().range([hGDim.h, 0])
+                .domain([0, d3.max(fD, function(d) { return d[1]; })]);
+
+            // Create bars for histogram to contain rectangles and Sex labels.
+            var bars = hGsvg.selectAll(".bar").data(fD).enter()
+                .append("g").attr("class", "bar");
+
+            //create the rectangles.
+            bars.append("rect")
+                .attr("x", function(d) { return x(d[0]); })
+                .attr("y", function(d) { return y(d[1]); })
+                .attr("width", x.rangeBand())
+                .attr("height", function(d) { return hGDim.h - y(d[1]); })
+                .attr('fill',barColor)
+                .on("mouseover",mouseover)// mouseover is defined below.
+                .on("mouseout",mouseout);// mouseout is defined below.
+
+            //Create the labels above the rectangles.
+            bars.append("text").text(function(d){ return d3.format(",")(d[1])})
+                .attr("x", function(d) { return x(d[0])+x.rangeBand()/2; })
+                .attr("y", function(d) { return y(d[1])-5; })
+                .attr("text-anchor", "middle");
+
+            hGsvg.append("text")
+                .attr("transform", "translate(150,90)")
+                .style("text-anchor", "middle")
+                .text("Age Groups");
+
+            function mouseover(d){  // utility function to be called on mouseover.
+                // filter for selected AgeRange.
+                var st = fData.filter(function(s){ return s.AgeRange == d[0];})[0],
+                    nD = d3.keys(st.Sex).map(function(s){ return {type:s, Sex:st.Sex[s]};});
+
+                // call update functions of pie-chart and legend.
+                pC.update(nD);
+                leg.update(nD);
+            }
+
+            function mouseout(d){    // utility function to be called on mouseout.
+                // reset the pie-chart and legend.
+                pC.update(tF);
+                leg.update(tF);
+            }
+
+            // create function to update the bars. This will be used by pie-chart.
+            hG.update = function(nD, color){
+                // update the domain of the y-axis map to reflect change in
+                y.domain([0, d3.max(nD, function(d) { return d[1]; })]);
+
+                // Attach the new data to the bars.
+                var bars = hGsvg.selectAll(".bar").data(nD);
+
+                // transition the height and color of rectangles.
+                bars.select("rect").transition().duration(500)
+                    .attr("y", function(d) {return y(d[1]); })
+                    .attr("height", function(d) { return hGDim.h - y(d[1]); })
+                    .attr("fill", color);
+
+                // transition the Sexuency labels location and change value.
+                bars.select("text").transition().duration(500)
+                    .text(function(d){ return d3.format(",")(d[1])})
+                    .attr("y", function(d) {return y(d[1])-5; });
+            }
+            return hG;
+        }
+
+        // function to handle pieChart.
+        function pieChart(pD){
+            var pC ={},    pieDim ={w:150, h: 150};
+            pieDim.r = Math.min(pieDim.w, pieDim.h) / 2;
+
+            // create svg for pie chart.
+            var piesvg = d3.select(id).append("svg")
+                .attr("width", pieDim.w).attr("height", pieDim.h).append("g")
+                .attr("transform", "translate("+pieDim.w/2+","+pieDim.h/2+")");
+
+            // create function to draw the arcs of the pie slices.
+            var arc = d3.svg.arc().outerRadius(pieDim.r - 10).innerRadius(0);
+
+            // create a function to compute the pie slice angles.
+            var pie = d3.layout.pie().sort(null).value(function(d) { return d.Sex; });
+
+            // Draw the pie slices.
+            piesvg.selectAll("path").data(pie(pD)).enter().append("path").attr("d", arc)
+                .each(function(d) { this._current = d; })
+                .style("fill", function(d) { return segColor(d.data.type); })
+                .on("mouseover",mouseover).on("mouseout",mouseout);
+
+            // create function to update pie-chart. This will be used by histogram.
+            pC.update = function(nD){
+                piesvg.selectAll("path").data(pie(nD)).transition().duration(500)
+                    .attrTween("d", arcTween);
+            }
+            // Utility function to be called on mouseover a pie slice.
+            function mouseover(d){
+                // call the update function of histogram with new data.
+                hG.update(fData.map(function(v){
+                    return [v.AgeRange,v.Sex[d.data.type]];}),segColor(d.data.type));
+            }
+            //Utility function to be called on mouseout a pie slice.
+            function mouseout(d){
+                // call the update function of histogram with all data.
+                hG.update(fData.map(function(v){
+                    return [v.AgeRange,v.total];}), barColor);
+            }
+
+            function arcTween(a) {
+                var i = d3.interpolate(this._current, a);
+                this._current = i(0);
+                return function(t) { return arc(i(t));    };
+            }
+            return pC;
+        }
+
+        // function to handle legend.
+        function legend(lD){
+            var leg = {};
+
+            // create table for legend.
+            var legend = d3.select(id).append("table").attr('class','legend');
+
+            // create one row per segment.
+            var tr = legend.append("tbody").selectAll("tr").data(lD).enter().append("tr");
+
+            // create the first column for each segment.
+            tr.append("td").append("svg").attr("width", '16').attr("height", '16').append("rect")
+                .attr("width", '16').attr("height", '16')
+                .attr("fill",function(d){ return segColor(d.type); });
+
+            // create the second column for each segment.
+            tr.append("td").text(function(d){ return d.type;});
+
+            // create the third column for each segment.
+            tr.append("td").attr("class",'legendSex')
+                .text(function(d){ return d3.format(",")(d.Sex);});
+
+            // create the fourth column for each segment.
+            tr.append("td").attr("class",'legendPerc')
+                .text(function(d){ return getLegend(d,lD);});
+
+            // Utility function to be used to update the legend.
+            leg.update = function(nD){
+                // update the data attached to the row elements.
+                var l = legend.select("tbody").selectAll("tr").data(nD);
+
+                // update the chart.
+                l.select(".legendSex").text(function(d){ return d3.format(",")(d.Sex);});
+
+                // update the percentage column.
+                l.select(".legendPerc").text(function(d){ return getLegend(d,nD);});
+            }
+
+            function getLegend(d,aD){ // Utility function to compute percentage.
+                return d3.format("%")(d.Sex/d3.sum(aD.map(function(v){ return v.Sex; })));
+            }
+
+            return leg;
+        }
+
+        // calculate total by segment for all AgeRange.
+        var tF = ['Male','Female',].map(function(d){
+            return {type:d, Sex: d3.sum(fData.map(function(t){ return t.Sex[d];}))};
+        });
+
+        // calculate total  by AgeRange for all segment.
+        var sF = fData.map(function(d){return [d.AgeRange,d.total];});
+
+        var hG = histoGram(sF), // create the histogram.
+            pC = pieChart(tF), // create the pie-chart.
+            leg= legend(tF);  // create the legend.
+    }
+</script>
+
+<script>
+
+    var SexData = [
+        {AgeRange:'0-10', Sex:{Male:65, Female:78}},
+        {AgeRange:'11-20', Sex:{Male:29, Female:19}},
+        {AgeRange:'21-40', Sex:{Male:34, Female:24}},
+        {AgeRange:'41-60', Sex:{Male:22, Female:35}},
+        {AgeRange:'61-80', Sex:{Male:46, Female:45}},
+        {AgeRange:'>80', Sex:{Male:88, Female:86}},
+    ];
+
+    ageGender('#ageGender',SexData);
+
+</script>
+    <div class="footer">
+        <p>
+            <center>
+            Hamim Nigena<br>
+            H517: Visualization Design <br>
+            Project1
+        </center>
+        </p>
+        
+    </div>
+
+</body>
 </html>
